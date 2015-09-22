@@ -5,7 +5,7 @@ module DJ
     unless ARGV[1].nil? || ARGV[1].empty?
       SETTINGS_FILE_PATH =  ARGV[1]
     else
-      SETTINGS_FILE_PATH = "../settings/twitter_settings.yml"
+      SETTINGS_FILE_PATH = "./settings/twitter_settings.yml"
     end
 
     LIMIT = 134
@@ -97,8 +97,8 @@ module DJ
         jumpstart.update(message)
         puts "successfully tweeted: #{message}"
       end
-      count = jumpstart.search("allpurposedj").attrs[:statuses].first[:user][:statuses_count]
-      puts "currently at #{count} tweets. Keep up the good work!"
+      tweet_count = jumpstart.search("allpurposedj").attrs[:statuses].first[:user][:statuses_count]
+      puts "currently at #{tweet_count} tweets. Keep up the good work!"
     end
 
     def just_one?

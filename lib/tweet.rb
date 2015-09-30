@@ -9,12 +9,12 @@ module DJ
     end
 
     LIMIT = 134
-    attr_reader :full_tweet, :tweet_pieces, :jumpstart
+    attr_reader :full_tweet, :tweet_pieces, :jumpstart, :env
 
     def self.authorize
       @credentials = {
-        :consumer_key => "beXya6tT8EwNBtaFokBDtgIaO",
-        :consumer_secret => "LinWFjVaR5pUlmDaaIadPMh1BUBUkrfIi4Jr0Wc0BbXlW90wuw"
+        :consumer_key    => env[:consumer_key],
+        :consumer_secret => env[:consumer_secret]
       }
       consumer = OAuth::Consumer.new(@credentials[:consumer_key], @credentials[:consumer_secret], :site => "https://twitter.com")
       request_token = consumer.get_request_token
@@ -26,6 +26,7 @@ module DJ
       @credentials[:access_token_secret] = access_token.secret
 
       self.write_settings
+      JumpstartAuth.twitter
     end
 
     def self.write_settings
@@ -90,7 +91,15 @@ module DJ
       end
     end
 
+    def self.env
+      @@env ||= YAML.load_file(SETTINGS_FILE_PATH)
+    end
+
     private
+
+    def env
+      @@env ||= YAML.load_file(SETTINGS_FILE_PATH)
+    end
 
     def tweet
       @tweet_pieces.each do |message|

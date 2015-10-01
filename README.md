@@ -4,10 +4,13 @@ the Twitter API through the [JumpstartAuth
 gem](https://github.com/JumpstartLab/jumpstart_auth).
 
 ##Usage
-Pull the repo down and make an alias to open up the file with the second
-argument as `ARGV[0]`,
+Pull the repo down.
+
+Make an alias to open up the file with the second argument as `ARGV[0]`
 ```alias tweet="ruby ~/auto_twitter/lib/tweet.rb" $1```
+
 Tweet from the command line!
+
 ![alt text](http://oi62.tinypic.com/21dq33p.jpg "A tweet from the command line")
 
 ##TODO

@@ -2,39 +2,8 @@ require "yaml"
 require "jumpstart_auth"
 module DJ
   class Tweet
-    unless ARGV[1].nil? || ARGV[1].empty?
-      SETTINGS_FILE_PATH =  ARGV[1]
-    else
-      SETTINGS_FILE_PATH = "./settings/twitter_settings.yml"
-    end
-
     LIMIT = 134
-    attr_reader :full_tweet, :tweet_pieces, :jumpstart, :env
-
-    def self.authorize
-      @credentials = {
-        :consumer_key    => env[:consumer_key],
-        :consumer_secret => env[:consumer_secret]
-      }
-      consumer = OAuth::Consumer.new(@credentials[:consumer_key], @credentials[:consumer_secret], :site => "https://twitter.com")
-      request_token = consumer.get_request_token
-      printf "Enter the supplied pin: "
-      Launchy.open(request_token.authorize_url)
-      pin = STDIN.gets.chomp
-      access_token = request_token.get_access_token(:oauth_verifier => pin)
-      @credentials[:access_token]      = access_token.token
-      @credentials[:access_token_secret] = access_token.secret
-
-      self.write_settings
-      JumpstartAuth.twitter
-    end
-
-    def self.write_settings
-      settings = File.open(SETTINGS_FILE_PATH, "w")
-      settings << @credentials.to_yaml
-      settings.close
-      @credentials
-    end
+    attr_reader :full_tweet, :tweet_pieces, :jumpstart
 
     def initialize(input="test tweet BACAW")
       @full_tweet = ARGV[0] || input
@@ -42,18 +11,11 @@ module DJ
       @jumpstart = JumpstartAuth.twitter
     end
 
-    def add_indicies
-      @tweet_pieces.map!.with_index do |message, index|
-        if just_one?
-          return message
-        else
-          message + indicies(index) unless just_one?
-        end
-      end
-    end
-
-    def indicies(index)
-      " [#{index + 1}/#{@tweet_pieces.count}]"
+    def run
+      split_on_tweet_limit(full_tweet)
+      delete_white_space
+      add_indicies
+      tweet
     end
 
     def split_on_tweet_limit(tweets)
@@ -75,12 +37,18 @@ module DJ
       @tweet_pieces
     end
 
-    def run
-      split_on_tweet_limit(full_tweet)
-      delete_white_space
-      add_indicies
-      align_settings_with_jumpstart_auth
-      tweet
+    def add_indicies
+      @tweet_pieces.map!.with_index do |message, index|
+        if just_one?
+          return message
+        else
+          message + indicies(index) unless just_one?
+        end
+      end
+    end
+
+    def indicies(index)
+      " [#{index + 1}/#{@tweet_pieces.count}]"
     end
 
     def delete_white_space
@@ -91,15 +59,7 @@ module DJ
       end
     end
 
-    def self.env
-      @@env ||= YAML.load_file(SETTINGS_FILE_PATH)
-    end
-
     private
-
-    def env
-      @@env ||= YAML.load_file(SETTINGS_FILE_PATH)
-    end
 
     def tweet
       @tweet_pieces.each do |message|
@@ -120,14 +80,6 @@ module DJ
 
     def combined_under_limit(sen, word)
       sen.length + word.length + 1 <= LIMIT
-    end
-
-    def align_settings_with_jumpstart_auth
-      keys = YAML.load_file(SETTINGS_FILE_PATH)
-      jumpstart.consumer_key        = keys[:consumer_key]
-      jumpstart.consumer_secret     = keys[:consumer_secret]
-      jumpstart.access_token        = keys[:access_token]
-      jumpstart.access_token_secret = keys[:access_token_secret]
     end
   end
 end
